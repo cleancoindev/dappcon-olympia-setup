@@ -1,7 +1,9 @@
 import argparse
+import json
 import logging
 import os
-import json
+from typing import List
+
 from ethereum.utils import checksum_encode, privtoaddr
 from web3 import HTTPProvider, Web3
 from web3.middleware import geth_poa_middleware
@@ -47,7 +49,7 @@ parser.add_argument("private_key", help="private key to fund the safes")
 args = parser.parse_args()
 
 
-def chunks(self, iterable, size=100):
+def chunks(iterable, size=100):
     """
     Split a list of elements into lists of fixed size elements
     """
@@ -55,7 +57,7 @@ def chunks(self, iterable, size=100):
         yield iterable[i:i + size]
 
 
-def read_file(filename):
+def read_addresses_from_file(filename) -> List[str]:
     with open(filename) as f:
         return [address.strip() for address in f]
 
@@ -108,7 +110,7 @@ def approve_token(contract, address: str, amount: int):
 filename = args.filename
 private_key = args.private_key
 
-addresses = read_file(filename)
+addresses = read_addresses_from_file(filename)
 send_ether(private_key, ETH_SPLITTER_ADDRESS, len(addresses) * ETHER_PER_ADDRESS)
 split_ether(private_key, addresses)
 approve_token(OLY_CONTRACT, TOKEN_SPLITTER_ADDRESS, len(addresses) * OLY_PER_ADDRESS)
