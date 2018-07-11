@@ -83,7 +83,9 @@ def send_ether(private_key: str, address: str, total_value: int):
     }
 
     signed_tx = w3.eth.account.signTransaction(tx, private_key=private_key)
-    return w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    tx_hash = w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+    w3.eth.waitForTransactionReceipt(tx_hash)
+    return tx_hash
 
 
 def split_ether(private_key: str, addresses: str):
@@ -95,11 +97,19 @@ def split_ether(private_key: str, addresses: str):
     return tx_hashes
 
 
+def approve_token(contract, address: str, amount: int):
+    tx = contract.approve(address, amount).buildTransaction()
+    signed = w3.eth.account.signTransaction(tx, private_key)
+    tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
+    w3.eth.waitForTransactionReceipt(tx_hash)
+    return tx_hash
+
+
 filename = args.filename
 private_key = args.private_key
 
 addresses = read_file(filename)
 send_ether(private_key, ETH_SPLITTER_ADDRESS, len(addresses) * ETHER_PER_ADDRESS)
 split_ether(private_key, addresses)
-OLY_CONTRACT.approve(TOKEN_SPLITTER_ADDRESS, len(addresses) * OLY_PER_ADDRESS)
+approve_token(OLY_CONTRACT, TOKEN_SPLITTER_ADDRESS, len(addresses) * OLY_PER_ADDRESS)
 split_tokens(private_key, addresses, OLY_PER_ADDRESS, OLY_ADDRESS)
