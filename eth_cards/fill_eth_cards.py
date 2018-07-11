@@ -60,8 +60,8 @@ def read_file(filename):
         return [address.strip() for address in f]
 
 
-def send_token(private_key: str, addresses: str, amount_per_address: int,
-               token_address: str):
+def split_tokens(private_key: str, addresses: str, amount_per_address: int,
+                 token_address: str):
     tx_hashes = []
     for address_sublist in chunks(addresses):
         tx = TOKEN_SPLITTER_CONTRACT.functions.splitTokens(address_sublist,
@@ -86,7 +86,7 @@ def send_ether(private_key: str, address: str, total_value: int):
     return w3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
 
-def split_ether(private_key: str, addresses: str, total_value: int):
+def split_ether(private_key: str, addresses: str):
     tx_hashes = []
     for address_sublist in chunks(addresses):
         tx = ETH_SPLITTER_CONTRACT.functions.splitEther(address_sublist).buildTransaction()
@@ -100,6 +100,6 @@ private_key = args.private_key
 
 addresses = read_file(filename)
 send_ether(private_key, ETH_SPLITTER_ADDRESS, len(addresses) * ETHER_PER_ADDRESS)
+split_ether(private_key, addresses)
 OLY_CONTRACT.approve(TOKEN_SPLITTER_ADDRESS, len(addresses) * OLY_PER_ADDRESS)
-send_token(private_key, addresses, len(addresses) * OLY_PER_ADDRESS,
-           OLY_ADDRESS)
+split_tokens(private_key, addresses, OLY_PER_ADDRESS, OLY_ADDRESS)
